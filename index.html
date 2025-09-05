@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharmacy benifit management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --primary: #3498db;
+      --primary-dark: #2980b9;
+      --secondary: #2c3e50;
+      --accent: #e67e22;
+      --light: #ecf0f1;
+      --success: #27ae60;
+      --danger: #e74c3c;
+    }
+
+    html, body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      padding: 35px 0 15px 0;
+      background: linear-gradient(to right, var(--secondary), var(--primary-dark));
+      color: white;
+      border-radius: 0 0 20px 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 10px;
+    }
+    .logo i { font-size: 2.5rem; color: var(--accent);}
+    h1 { font-size: 2.3rem; font-weight: 700;}
+    .subtitle { font-size: 1.1rem; opacity: 0.9; max-width: 600px; margin: 0 auto;}
+    .nav-pills .nav-link.active { background: linear-gradient(45deg, var(--primary), var(--secondary)); color: #fff !important;}
+    .nav-pills .nav-link { color: var(--secondary);}
+    section { display: none; }
+    section.active { display: block; }
+    .card { background: white; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.08);}
+    .card-header { background: linear-gradient(45deg, var(--primary), var(--secondary)); color: white; border-radius: 15px 15px 0 0; font-weight: 600; font-size: 1.15rem;}
+    .btn-primary, .btn-success { background: linear-gradient(45deg, var(--primary), var(--secondary)); border: none;}
+    .btn-primary:hover, .btn-success:hover { background: linear-gradient(45deg, var(--secondary), var(--primary));}
+    .category-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;}
+    .category-cardio { background-color: #ffe6e6; color: #cc0000;}
+    .category-gi { background-color: #e6f3ff; color: #0066cc;}
+    .category-resp { background-color: #e6ffe6; color: #008000;}
+    .category-endo { background-color: #fff0e6; color: #cc6600;}
+    .category-bio { background-color: #f0e6ff; color: #6600cc;}
+    .category-other { background-color: #f2f2f2; color: #666666;}
+    .savings-positive { color: #28a745; font-weight: 600;}
+    .upload-area { border: 2px dashed var(--primary); border-radius: 10px; padding: 25px; text-align: center; background-color: rgba(74, 100, 145, 0.05); cursor: pointer;}
+    .upload-area:hover { background-color: rgba(74, 100, 145, 0.1); border-color: var(--secondary);}
+    .upload-icon { font-size: 2.5rem; color: var(--primary);}
+    .file-list { max-height: 180px; overflow-y: auto;}
+    .file-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; border-radius: 8px; background-color: #f8f9fa; margin-bottom: 5px;}
+    .file-name { flex-grow: 1; margin: 0 8px; font-weight: 500;}
+    .remove-file { font-size: 0.85rem;}
+    .loading { display: none; text-align: center;}
+    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto;}
+    @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);}}
+    .stats-card { text-align: center; padding: 10px;}
+    .stats-number { font-size: 1.5rem; font-weight: bold; color: var(--primary);}
+    .stats-label { color: #6c757d; font-size: 0.95rem;}
+    .summary-card { background: linear-gradient(45deg, var(--primary), var(--secondary)); color: white; border-radius: 12px; padding: 15px; text-align: center;}
+    .savings-amount { font-size: 2rem; font-weight: bold;}
+    .actions { display: flex; justify-content: center; gap: 15px; margin-top: 20px;}
+    .requirements { background: #fff8e1; border-left: 4px solid #ffc107; padding: 20px; border-radius: 8px; margin: 20px 0;}
+    .requirements-title { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; color: var(--secondary);}
+    .requirements-title i { color: #ff9800;}
+    .requirements-table { width: 100%; border-collapse: collapse; margin-top: 10px;}
+    .requirements-table th { background: #ffc107; color: #333;}
+    .requirements-table td { border: 1px solid #ffe082;}
+    .requirements-table tr:nth-child(even) { background: #fffde7;}
+    .status-processing { background-color: rgba(230, 126, 34, 0.2); color: #e67e22; animation: pulse 1.5s infinite;}
+    .status-error { background-color: rgba(231, 76, 60, 0.2); color: #e74c3c;}
+    .status-success { background-color: rgba(39, 174, 96, 0.2); color: #27ae60;}
+    @keyframes pulse { 0% { opacity: 1;} 50% { opacity: 0.7;} 100% { opacity: 1;} }
+    @media (max-width: 991px) { .actions { flex-direction: column; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="logo">
+        <i class="fas fa-pills"></i>
+        <h1>Pharma Analytics Dashboard</h1>
+      </div>
+      <p class="subtitle">Therapeutic Equivalence, Formulary Analysis, and Drug Utilization Trends &mdash; All in One Place</p>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Nav Tabs -->
+    <ul class="nav nav-pills mb-4 justify-content-center" id="mainTab" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="teq-tab" data-bs-toggle="pill" data-bs-target="#teq" type="button" role="tab">Therapeutic Equivalence</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="formulary-tab" data-bs-toggle="pill" data-bs-target="#formulary" type="button" role="tab">Formulary Analysis</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="trend-tab" data-bs-toggle="pill" data-bs-target="#trend" type="button" role="tab">Utilization Trend</button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="mainTabContent">
+      <!-- Section 1: Therapeutic Equivalence -->
+      <section class="tab-pane fade show active" id="teq" role="tabpanel">
+        <div class="card mb-4">
+          <div class="card-header">
+            <i class="fas fa-balance-scale"></i> Therapeutic Equivalence Analysis
+          </div>
+          <div class="card-body">
+            <div class="upload-area" id="teqDropZone">
+              <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+              <h5>Upload CSV File for Therapeutic Analysis</h5>
+              <input type="file" id="teqCsvFile" accept=".csv" style="display:none;" />
+              <button class="btn btn-primary mt-2" id="teqBrowseBtn">
+                <i class="fas fa-search me-2"></i>Browse File
+              </button>
+              <div id="teqUploadStatus" class="mt-2"></div>
+            </div>
+            <div id="teqResults" class="mt-4"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Formulary Analysis -->
+      <section class="tab-pane fade" id="formulary" role="tabpanel">
+        <div class="row">
+          <div class="col-lg-4 mb-3">
+            <div class="card mb-3">
+              <div class="card-header">
+                <i class="fas fa-file-upload me-2"></i>Data Upload
+              </div>
+              <div class="card-body">
+                <div class="upload-area" id="formDropZone">
+                  <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                  <h5>Drag & Drop Files Here</h5>
+                  <p class="text-muted">or click to browse your files</p>
+                  <input type="file" id="formFileInput" accept=".csv" multiple style="display:none;">
+                  <button class="btn btn-primary mt-2" id="formBrowseBtn">
+                    <i class="fas fa-search me-2"></i>Browse Files
+                  </button>
+                </div>
+                <div class="mt-3">
+                  <h6>Uploaded Files</h6>
+                  <div class="file-list" id="formFileList">
+                    <p class="text-muted text-center">No files uploaded yet</p>
+                  </div>
+                </div>
+                <div class="d-grid gap-2 mt-3">
+                  <button id="formAnalyzeBtn" class="btn btn-primary" disabled>
+                    <i class="fas fa-chart-line me-2"></i>Analyze Formulary
+                  </button>
+                </div>
+                <div class="loading mt-3" id="formLoadingIndicator">
+                  <div class="spinner"></div>
+                  <p class="mt-2">Analyzing your formulary data...</p>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <i class="fas fa-chart-pie me-2"></i>Summary Statistics
+              </div>
+              <div class="card-body">
+                <div class="row text-center" id="formSummaryStats">
+                  <div class="col-6 mb-2">
+                    <div class="stats-card"><div class="stats-number">0</div><div class="stats-label">Drugs Analyzed</div></div>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <div class="stats-card"><div class="stats-number">0</div><div class="stats-label">Alternatives Found</div></div>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <div class="stats-card"><div class="stats-number">$0</div><div class="stats-label">Savings per Rx</div></div>
+                  </div>
+                  <div class="col-6 mb-2">
+                    <div class="stats-card"><div class="stats-number">$0</div><div class="stats-label">Annual Savings</div></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-8">
+            <ul class="nav nav-pills mb-3" id="formPillsTab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="form-results-tab" data-bs-toggle="pill" data-bs-target="#form-results" type="button" role="tab">Analysis Results</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="form-visualization-tab" data-bs-toggle="pill" data-bs-target="#form-visualization" type="button" role="tab">Visualizations</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="form-categories-tab" data-bs-toggle="pill" data-bs-target="#form-categories" type="button" role="tab">Categories</button>
+              </li>
+            </ul>
+            <div class="tab-content" id="formPillsTabContent">
+              <div class="tab-pane fade show active" id="form-results" role="tabpanel">
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <i class="fas fa-table me-2"></i>Analysis Results
+                  </div>
+                  <div class="card-body">
+                    <div class="summary-card mb-3">
+                      <h5>Potential Annual Savings</h5>
+                      <div class="savings-amount" id="formSavingsAmount">$0.00</div>
+                      <p>Based on therapeutic alternatives and generic substitutions</p>
+                    </div>
+                    <div class="table-responsive">
+                      <table class="table table-hover">
+                        <thead>
+                          <tr>
+                            <th>Current Drug</th>
+                            <th>Alternative</th>
+                            <th>Type</th>
+                            <th>Category</th>
+                            <th>Current Cost</th>
+                            <th>Alt. Cost</th>
+                            <th>Savings/Rx</th>
+                            <th>Annual Savings</th>
+                          </tr>
+                        </thead>
+                        <tbody id="formResultsTable">
+                          <tr>
+                            <td colspan="8" class="text-center py-4">Upload CSV files and click "Analyze Formulary" to see results</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="form-visualization" role="tabpanel">
+                <div class="card mb-3">
+                  <div class="card-header">
+                    <i class="fas fa-chart-bar me-2"></i>Savings Visualization
+                  </div>
+                  <div class="card-body">
+                    <canvas id="formSavingsChart" height="220"></canvas>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <div class="card">
+                      <div class="card-header"><i class="fas fa-chart-pie me-2"></i>Savings by Category</div>
+                      <div class="card-body">
+                        <canvas id="formCategoryChart" height="200"></canvas>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <div class="card">
+                      <div class="card-header"><i class="fas fa-table me-2"></i>Alternative Types</div>
+                      <div class="card-body">
+                        <canvas id="formTypeChart" height="200"></canvas>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tab-pane fade" id="form-categories" role="tabpanel">
+                <div class="card">
+                  <div class="card-header"><i class="fas fa-list me-2"></i>Drug Categories</div>
+                  <div class="card-body">
+                    <div class="row" id="formCategoryCards"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 3: Utilization Trend -->
+      <section class="tab-pane fade" id="trend" role="tabpanel">
+        <div class="card mb-3">
+          <div class="card-header"><i class="fas fa-info-circle"></i> CSV File Requirements</div>
+          <div class="card-body">
+            <div class="requirements">
+              <div class="requirements-title"><i class="fas fa-exclamation-triangle"></i>
+                <h3>Your CSV file must include these columns:</h3>
+              </div>
+              <table class="requirements-table">
+                <thead>
+                  <tr>
+                    <th>Column Name</th>
+                    <th>Description</th>
+                    <th>Format</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Medication</strong></td>
+                    <td>Name of the drug/medication</td>
+                    <td>Text</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Date of Admission</strong></td>
+                    <td>Date when drug was dispensed or patient admitted</td>
+                    <td>YYYY-MM-DD preferred</td>
+                  </tr>
+                  <tr>
+                    <td><strong>Billing Amount</strong></td>
+                    <td>Numeric value representing cost or quantity proxy</td>
+                    <td>Numeric</td>
+                  </tr>
+                </tbody>
+              </table>
+              <p style="margin-top: 10px; font-style: italic;">
+                <i class="fas fa-lightbulb"></i> Tip: Column names must match exactly as above for successful analysis.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="card mb-3">
+          <div class="card-header"><i class="fas fa-upload"></i> Data Upload</div>
+          <div class="card-body">
+            <form id="trendUploadForm" enctype="multipart/form-data">
+              <div class="upload-area" id="trendDropZone" style="cursor:pointer;">
+                <input type="file" id="trendCsvFileInput" accept=".csv" style="display:none;">
+                <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                <span class="d-block mb-2" id="trendFileName">No file selected</span>
+                <button type="button" class="btn btn-primary" id="trendBrowseBtn"><i class="fas fa-search me-2"></i>Browse File</button>
+              </div>
+              <div class="d-flex mt-3">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="fas fa-chart-line"></i> Analyze Trends</button>
+              </div>
+            </form>
+            <div id="trendStatus" class="mt-2"></div>
+          </div>
+        </div>
+        <div class="card mb-3">
+          <div class="card-header"><i class="fas fa-table"></i> Analysis Results</div>
+          <div class="card-body" id="trendResult"></div>
+        </div>
+        <div class="card mb-3" id="trendChartContainer" style="display:none;">
+          <div class="card-header"><i class="fas fa-chart-bar"></i> Trend Visualization</div>
+          <div class="card-body">
+            <canvas id="trendChart" height="280"></canvas>
+          </div>
+        </div>
+        <div class="actions">
+          <button id="trendDownloadBtn" class="btn btn-success" style="display:none;">
+            <i class="fas fa-download"></i> Download Results CSV
+          </button>
+          <button id="trendResetBtn" class="btn">
+            <i class="fas fa-redo"></i> Reset Analysis
+          </button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <footer class="mt-4 mb-2 text-center text-muted small">
+    Pharma Analytics Dashboard &copy; 2025 | Unified drug analysis, savings, and trend prediction
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // TAB AUTO-SECTION SWITCH for plain HTML fallback
+    // (Bootstrap handles toggling for nav-pills)
+
+    // 1. --- Therapeutic Equivalence Analysis Section (prevation py) ---
+    document.getElementById('teqBrowseBtn').onclick = () => document.getElementById('teqCsvFile').click();
+    document.getElementById('teqDropZone').onclick = (e) => {
+      if (e.target.tagName !== 'BUTTON') document.getElementById('teqCsvFile').click();
+    };
+    document.getElementById('teqCsvFile').addEventListener('change', handleTeqCsv);
+
+    async function handleTeqCsv() {
+      const input = document.getElementById('teqCsvFile');
+      const file = input.files[0];
+      const status = document.getElementById('teqUploadStatus');
+      const resultsDiv = document.getElementById('teqResults');
+      if (!file) return;
+      status.innerHTML = "⏳ Uploading and analyzing...";
+      resultsDiv.innerHTML = "";
+      // DEMO: Simulate analysis with random data (replace fetch with actual API in production)
+      setTimeout(() => {
+        status.innerHTML = "✅ Analysis complete!";
+        // Show mock results
+        const mock = [
+          { Drug: "Aspirin", Group: "NSAID", Equivalent: "Yes", Comments: "Generic available" },
+          { Drug: "Metformin", Group: "Biguanide", Equivalent: "Yes", Comments: "Recommended" },
+          { Drug: "Atorvastatin", Group: "Statin", Equivalent: "Yes", Comments: "Multiple options" },
+        ];
+        let html = "<table class='table table-bordered'><thead><tr>";
+        Object.keys(mock[0]).forEach(col => html += `<th>${col}</th>`);
+        html += "</tr></thead><tbody>";
+        mock.forEach(row => {
+          html += "<tr>";
+          Object.values(row).forEach(val => html += `<td>${val}</td>`);
+          html += "</tr>";
+        });
+        html += "</tbody></table>";
+        resultsDiv.innerHTML = html;
+      }, 1200);
+    }
+
+    // 2. --- Formulary Analysis Section ---
+    const formDropZone = document.getElementById('formDropZone');
+    const formFileInput = document.getElementById('formFileInput');
+    const formFileList = document.getElementById('formFileList');
+    const formAnalyzeBtn = document.getElementById('formAnalyzeBtn');
+    const formLoadingIndicator = document.getElementById('formLoadingIndicator');
+    const formResultsTable = document.getElementById('formResultsTable');
+    const formSavingsAmount = document.getElementById('formSavingsAmount');
+    const formSummaryStats = document.getElementById('formSummaryStats');
+    const formCategoryCards = document.getElementById('formCategoryCards');
+
+    let formUploadedFiles = [];
+    let formAnalysisResults = [];
+
+    // Chart.js for Formulary
+    const formSavingsChart = new Chart(document.getElementById('formSavingsChart'), {
+      type: 'bar',
+      data: { labels: [], datasets: [{ label: 'Annual Savings ($)', data: [], backgroundColor: 'rgba(74, 100, 145, 0.7)' }] },
+      options: { responsive: true, plugins: { title: { display: true, text: 'Savings by Drug' } } }
+    });
+    const formCategoryChart = new Chart(document.getElementById('formCategoryChart'), {
+      type: 'pie',
+      data: { labels: [], datasets: [{ data: [], backgroundColor: [
+        'rgba(255, 99, 132, 0.7)','rgba(54, 162, 235, 0.7)','rgba(255, 206, 86, 0.7)',
+        'rgba(75, 192, 192, 0.7)','rgba(153, 102, 255, 0.7)','rgba(255, 159, 64, 0.7)'] }] },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Savings by Category' } } }
+    });
+    const formTypeChart = new Chart(document.getElementById('formTypeChart'), {
+      type: 'doughnut',
+      data: { labels: ['Generic', 'Therapeutic', 'Biosimilar'],
+        datasets: [{ data: [0,0,0], backgroundColor: [
+          'rgba(40, 167, 69, 0.7)','rgba(23, 162, 184, 0.7)','rgba(108, 117, 125, 0.7)'] }] },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' },
+        title: { display: true, text: 'Alternative Types' } } }
+    });
+
+    document.getElementById('formBrowseBtn').onclick = () => formFileInput.click();
+    formDropZone.addEventListener('click', (e) => { if (e.target.tagName !== 'BUTTON') formFileInput.click(); });
+    formDropZone.addEventListener('dragover', (e) => { e.preventDefault(); formDropZone.style.borderColor = '#2c3e50'; formDropZone.style.backgroundColor = 'rgba(74, 100, 145, 0.1)'; });
+    formDropZone.addEventListener('dragleave', () => { formDropZone.style.borderColor = '#4a6491'; formDropZone.style.backgroundColor = 'rgba(74, 100, 145, 0.05)'; });
+    formDropZone.addEventListener('drop', (e) => {
+      e.preventDefault(); formDropZone.style.borderColor = '#4a6491'; formDropZone.style.backgroundColor = 'rgba(74, 100, 145, 0.05)';
+      if (e.dataTransfer.files.length) handleFormFiles(e.dataTransfer.files);
+    });
+    formFileInput.addEventListener('change', () => { if (formFileInput.files.length) handleFormFiles(formFileInput.files); });
+    formAnalyzeBtn.addEventListener('click', () => analyzeFormData());
+
+    function handleFormFiles(files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type !== 'text/csv' && !file.name.toLowerCase().endsWith('.csv')) { alert('Please upload only CSV files.'); continue; }
+        if (formUploadedFiles.some(f => f.name === file.name && f.size === file.size)) continue;
+        formUploadedFiles.push(file);
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.innerHTML = `
+          <div class="file-icon"><i class="fas fa-file-csv text-primary"></i></div>
+          <div class="file-name">${file.name}</div>
+          <div class="file-actions">
+            <button class="btn btn-sm btn-outline-danger remove-file"><i class="fas fa-times"></i></button>
+          </div>`;
+        fileItem.querySelector('.remove-file').addEventListener('click', (e) => {
+          e.stopPropagation();
+          const idx = formUploadedFiles.findIndex(f => f.name === file.name && f.size === file.size);
+          if (idx !== -1) { formUploadedFiles.splice(idx, 1); fileItem.remove(); updateFormAnalyzeBtn(); }
+        });
+        if (formFileList.querySelector('.text-muted')) formFileList.innerHTML = '';
+        formFileList.appendChild(fileItem);
+      }
+      updateFormAnalyzeBtn();
+    }
+    function updateFormAnalyzeBtn() { formAnalyzeBtn.disabled = formUploadedFiles.length === 0; }
+    function analyzeFormData() {
+      if (formUploadedFiles.length === 0) { alert('Please upload at least one CSV file first.'); return; }
+      formLoadingIndicator.style.display = 'block'; formAnalyzeBtn.disabled = true;
+      setTimeout(() => {
+        formLoadingIndicator.style.display = 'none'; formAnalyzeBtn.disabled = false;
+        const mockData = {
+          success: true,
+          total_savings: 745955,
+          results: [
+            { current_drug: "Atorvastatin", alternative_drug: "Atorvastatin (Generic)", alternative_type: "generic", current_cost: 25.50, predicted_alt_cost: 7.65, savings_per_rx: 17.85, annual_savings: 214200, category: "Cardiovascular" },
+            { current_drug: "Amlodipine", alternative_drug: "Amlodipine (Generic)", alternative_type: "generic", current_cost: 20.30, predicted_alt_cost: 6.09, savings_per_rx: 14.21, annual_savings: 156310, category: "Cardiovascular" },
+            { current_drug: "Omeprazole", alternative_drug: "Omeprazole (Generic)", alternative_type: "generic", current_cost: 18.90, predicted_alt_cost: 5.67, savings_per_rx: 13.23, annual_savings: 138915, category: "GI" },
+            { current_drug: "Metformin", alternative_drug: "Metformin (Generic)", alternative_type: "generic", current_cost: 10.75, predicted_alt_cost: 3.23, savings_per_rx: 7.53, annual_savings: 135450, category: "Endocrine" },
+            { current_drug: "Lisinopril", alternative_drug: "Lisinopril (Generic)", alternative_type: "generic", current_cost: 15.20, predicted_alt_cost: 4.56, savings_per_rx: 10.64, annual_savings: 101080, category: "Cardiovascular" }
+          ]
+        };
+        displayFormResults(mockData); updateFormCharts(mockData); updateFormSummaryStats(mockData); updateFormCategoryCards(mockData);
+        document.getElementById('form-results-tab').click();
+      }, 1500);
+    }
+    function displayFormResults(data) {
+      formAnalysisResults = data.results || [];
+      formSavingsAmount.textContent = `$${data.total_savings.toLocaleString()}`;
+      formResultsTable.innerHTML = '';
+      if (formAnalysisResults.length > 0) {
+        formAnalysisResults.forEach(result => {
+          let categoryClass = 'category-other';
+          if (result.category === 'Cardiovascular') categoryClass = 'category-cardio';
+          else if (result.category === 'GI') categoryClass = 'category-gi';
+          else if (result.category === 'Respiratory') categoryClass = 'category-resp';
+          else if (result.category === 'Endocrine') categoryClass = 'category-endo';
+          else if (result.category === 'Biologics') categoryClass = 'category-bio';
+          const row = document.createElement('tr');
+          row.innerHTML = `<td>${result.current_drug}</td>
+            <td>${result.alternative_drug}</td>
+            <td>${result.alternative_type}</td>
+            <td><span class="category-badge ${categoryClass}">${result.category}</span></td>
+            <td>$${result.current_cost.toFixed(2)}</td>
+            <td>$${result.predicted_alt_cost.toFixed(2)}</td>
+            <td class="savings-positive">$${result.savings_per_rx.toFixed(2)}</td>
+            <td class="savings-positive">$${result.annual_savings.toLocaleString()}</td>`;
+          formResultsTable.appendChild(row);
+        });
+      } else {
+        formResultsTable.innerHTML = `<tr><td colspan="8" class="text-center py-4">No potential savings identified</td></tr>`;
+      }
+    }
+    function updateFormCharts(data) {
+      const results = data.results || [];
+      formSavingsChart.data.labels = results.map(r => r.current_drug);
+      formSavingsChart.data.datasets[0].data = results.map(r => r.annual_savings);
+      formSavingsChart.update();
+
+      const categories = {};
+      results.forEach(r => { categories[r.category] = (categories[r.category] || 0) + r.annual_savings; });
+      formCategoryChart.data.labels = Object.keys(categories);
+      formCategoryChart.data.datasets[0].data = Object.values(categories);
+      formCategoryChart.update();
+
+      const types = { 'generic': 0, 'therapeutic': 0, 'biosimilar': 0 };
+      results.forEach(r => { if (r.alternative_type in types) types[r.alternative_type] += r.annual_savings; });
+      formTypeChart.data.datasets[0].data = Object.values(types);
+      formTypeChart.update();
+    }
+    function updateFormSummaryStats(data) {
+      const results = data.results || [];
+      const stats = formSummaryStats.querySelectorAll('.stats-number');
+      stats[0].textContent = results.length;
+      stats[1].textContent = results.length;
+      if (results.length > 0) {
+        const avgSavingsPerRx = results.reduce((sum, r) => sum + r.savings_per_rx, 0) / results.length;
+        stats[2].textContent = `$${avgSavingsPerRx.toFixed(2)}`;
+        stats[3].textContent = `$${data.total_savings.toLocaleString()}`;
+      } else {
+        stats[2].textContent = '$0'; stats[3].textContent = '$0';
+      }
+    }
+    function updateFormCategoryCards(data) {
+      const results = data.results || [];
+      const categories = {};
+      results.forEach(r => {
+        if (!categories[r.category]) categories[r.category] = { count: 0, savings: 0 };
+        categories[r.category].count++; categories[r.category].savings += r.annual_savings;
+      });
+      let html = '';
+      for (const [category, d] of Object.entries(categories)) {
+        let categoryClass = 'category-other';
+        if (category === 'Cardiovascular') categoryClass = 'category-cardio';
+        else if (category === 'GI') categoryClass = 'category-gi';
+        else if (category === 'Respiratory') categoryClass = 'category-resp';
+        else if (category === 'Endocrine') categoryClass = 'category-endo';
+        else if (category === 'Biologics') categoryClass = 'category-bio';
+        html += `<div class="col-md-6 col-lg-4 mb-3">
+          <div class="card">
+            <div class="card-body text-center">
+              <span class="category-badge ${categoryClass} mb-2">${category}</span>
+              <h4 class="text-primary">${d.count}</h4>
+              <p class="mb-1">Drugs</p>
+              <h5 class="savings-positive">$${d.savings.toLocaleString()}</h5>
+              <p class="text-muted">Annual Savings</p>
+            </div>
+          </div>
+        </div>`;
+      }
+      formCategoryCards.innerHTML = html || '<div class="col-12 text-center"><p>No category data available</p></div>';
+    }
+
+    // 3. --- Drug Utilization Trend Section ---
+    const trendForm = document.getElementById('trendUploadForm');
+    const trendCsvInput = document.getElementById('trendCsvFileInput');
+    const trendBrowseBtn = document.getElementById('trendBrowseBtn');
+    const trendDropZone = document.getElementById('trendDropZone');
+    const trendFileName = document.getElementById('trendFileName');
+    const trendStatus = document.getElementById('trendStatus');
+    const trendResultDiv = document.getElementById('trendResult');
+    const trendChartContainer = document.getElementById('trendChartContainer');
+    const trendDownloadBtn = document.getElementById('trendDownloadBtn');
+    const trendResetBtn = document.getElementById('trendResetBtn');
+    let trendChartInstance = null, trendLatestResults = null;
+
+    trendBrowseBtn.onclick = () => trendCsvInput.click();
+    trendDropZone.onclick = (e) => { if (e.target.tagName !== 'BUTTON') trendCsvInput.click(); };
+    trendCsvInput.addEventListener('change', (e) => {
+      if (trendCsvInput.files.length > 0) trendFileName.textContent = trendCsvInput.files[0].name;
+      else trendFileName.textContent = 'No file selected';
+    });
+
+    trendForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const file = trendCsvInput.files[0];
+      if (!file) { showTrendStatus('Please select a CSV file.', 'error'); return; }
+      // Validate header
+      const text = await file.text();
+      const firstLine = text.split('\n')[0].toLowerCase();
+      const requiredCols = ['medication', 'date of admission', 'billing amount'];
+      for (const col of requiredCols) {
+        if (!firstLine.includes(col.toLowerCase())) {
+          showTrendStatus(`Error: CSV must contain column "${col}".`, 'error');
+          return;
+        }
+      }
+      showTrendStatus('Analyzing medication trends...', 'processing');
+      trendResultDiv.innerHTML = '';
+      trendChartContainer.style.display = 'none';
+      trendDownloadBtn.style.display = 'none';
+      setTimeout(() => {
+        // Mock result
+        const mockData = [
+          { Medication: "Aspirin", YearMonth: "2025-07", Billing_Amount: 1200, Trend_Prediction: 1 },
+          { Medication: "Aspirin", YearMonth: "2025-08", Billing_Amount: 1500, Trend_Prediction: 1 },
+          { Medication: "Metformin", YearMonth: "2025-07", Billing_Amount: 1100, Trend_Prediction: 0 },
+          { Medication: "Metformin", YearMonth: "2025-08", Billing_Amount: 1250, Trend_Prediction: 1 },
+        ];
+        trendLatestResults = mockData;
+        trendDownloadBtn.style.display = 'inline-block';
+        // Show table
+        let html = '<table class="table table-bordered"><thead><tr>';
+        Object.keys(mockData[0]).forEach(key => html += `<th>${key.replace(/_/g, ' ').toUpperCase()}</th>`);
+        html += '</tr></thead><tbody>';
+        mockData.forEach(row => {
+          html += '<tr>';
+          Object.values(row).forEach(val => html += `<td>${val}</td>`);
+          html += '</tr>';
+        });
+        html += '</tbody></table>';
+        trendResultDiv.innerHTML = html;
+        showTrendChart(mockData);
+        showTrendStatus('Analysis complete! Trends visualized below.', 'success');
+      }, 1200);
+    };
+
+    function showTrendChart(data) {
+      const trendCount = {};
+      data.forEach(item => {
+        if (!trendCount[item.YearMonth]) trendCount[item.YearMonth] = 0;
+        if (item.Trend_Prediction === 1 || item.TREND_PREDICTION === 1)
+          trendCount[item.YearMonth] += 1;
+      });
+      const labels = Object.keys(trendCount).sort();
+      const values = labels.map(label => trendCount[label]);
+      const ctx = document.getElementById('trendChart').getContext('2d');
+      if (trendChartInstance) trendChartInstance.destroy();
+      trendChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: { labels: labels, datasets: [{
+          label: 'Number of Drugs with Trend Increase',
+          data: values,
+          backgroundColor: 'rgba(54, 162, 235, 0.7)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1,
+        }] },
+        options: {
+          responsive: true,
+          scales: { y: { beginAtZero: true, title: { display:true, text:'Number of Drugs', font: { weight: 'bold'} } }, x: { title: { display:true, text:'Year-Month', font: { weight: 'bold'} } }, },
+          plugins: { title: { display:true, text:'Drug Utilization Trend Increases Over Time', font: { size: 16 } }, legend: { position: 'top' } }
+        }
+      });
+      trendChartContainer.style.display = 'block';
+    }
+    function showTrendStatus(message, type) {
+      trendStatus.textContent = message; trendStatus.className = '';
+      trendStatus.classList.add(type); trendStatus.classList.add('status-' + type);
+      let iconClass = '';
+      switch(type) {
+        case 'processing': iconClass = 'fas fa-sync-alt fa-spin'; break;
+        case 'error': iconClass = 'fas fa-exclamation-circle'; break;
+        case 'success': iconClass = 'fas fa-check-circle'; break;
+      }
+      trendStatus.innerHTML = `<i class="${iconClass}"></i> ${message}`;
+    }
+    trendDownloadBtn.addEventListener('click', () => {
+      if (!trendLatestResults) return;
+      const csvRows = [];
+      const headers = Object.keys(trendLatestResults[0]);
+      csvRows.push(headers.join(','));
+      trendLatestResults.forEach(row => {
+        const values = headers.map(h => `"${row[h]}"`);
+        csvRows.push(values.join(','));
+      });
+      const csvString = csvRows.join('\n');
+      const blob = new Blob([csvString], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('hidden', ''); a.setAttribute('href', url); a.setAttribute('download', 'trend_analysis_results.csv');
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    });
+    trendResetBtn.addEventListener('click', () => {
+      trendCsvInput.value = ''; trendFileName.textContent = 'No file selected';
+      trendStatus.textContent = ''; trendStatus.className = '';
+      trendResultDiv.innerHTML = ''; trendChartContainer.style.display = 'none'; trendDownloadBtn.style.display = 'none';
+      if (trendChartInstance) { trendChartInstance.destroy(); trendChartInstance = null; }
+    });
+  </script>
+</body>
+</html>
